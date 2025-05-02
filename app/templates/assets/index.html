@@ -1,0 +1,217 @@
+<!-- app/templates/assets/index.html -->
+{% extends "base.html" %}
+
+{% block title %}Daftar Aset{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-boxes me-2"></i>Daftar Aset</h2>
+        <p class="text-muted">
+            Menampilkan aset yang dimiliki oleh satuan kerja {{ current_user.satker.name }}
+        </p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('asset_bp.add') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Tambah Aset
+        </a>
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#syncModal">
+            <i class="fas fa-sync me-1"></i> Sinkronisasi
+        </button>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Aset</h5>
+                <p class="display-4">{{ assets|length }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <h5 class="card-title">Kondisi Baik</h5>
+                <p class="display-4">{{ asset_conditions.Baik }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <h5 class="card-title">Kondisi Rusak</h5>
+                <p class="display-4">{{ asset_conditions['Rusak Ringan'] + asset_conditions['Rusak Berat'] }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Ringkasan Aset Berdasarkan Tipe</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tipe Aset</th>
+                                <th class="text-end">Jumlah</th>
+                                <th class="text-end">Persentase</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for type, count in asset_types.items() %}
+                            <tr>
+                                <td>{{ type }}</td>
+                                <td class="text-end">{{ count }}</td>
+                                <td class="text-end">
+                                    {{ "%.1f"|format(count / assets|length * 100) }}%
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Daftar Aset</h5>
+        <input type="text" id="searchAsset" class="form-control w-25" placeholder="Cari aset...">
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover" id="assetTable">
+                <thead>
+                    <tr>
+                        <th>Kode</th>
+                        <th>Nama</th>
+                        <th>Kondisi</th>
+                        <th>Tanggal Perolehan</th>
+                        <th>Usia (Tahun)</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asset in assets %}
+                    <tr>
+                        <td>{{ asset.asset_code }}</td>
+                        <td>{{ asset.asset_name }}</td>
+                        <td>
+                            {% if asset.asset_condition == 'Baik' %}
+                            <span class="badge bg-success">{{ asset.asset_condition }}</span>
+                            {% elif asset.asset_condition == 'Rusak Ringan' %}
+                            <span class="badge bg-warning">{{ asset.asset_condition }}</span>
+                            {% else %}
+                            <span class="badge bg-danger">{{ asset.asset_condition }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ asset.acquisition_date.strftime('%d-%m-%Y') }}</td>
+                        <td>{{ asset.get_age_years() }}</td>
+                        <td>
+                            <a href="{{ url_for('asset_bp.view', id=asset.id) }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ url_for('asset_bp.edit', id=asset.id) }}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" 
+                                    data-bs-target="#deleteModal" data-asset-id="{{ asset.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Hapus</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Anda yakin ingin menghapus aset ini?</p>
+                <p class="mb-0 text-danger"><strong>Perhatian:</strong> Tindakan ini tidak dapat dibatalkan!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <form id="deleteForm" action="" method="POST">
+                    <button type="submit" class="btn btn-danger">Hapus</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sync Modal -->
+<div class="modal fade" id="syncModal" tabindex="-1" aria-labelledby="syncModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="syncModalLabel">Sinkronisasi Aset</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Apakah Anda ingin melakukan sinkronisasi data aset dengan sistem SIMAN dan SAKTI?</p>
+                <p>Sinkronisasi akan memperbarui data aset berdasarkan data yang ada di sistem eksternal.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <form action="{{ url_for('asset_bp.sync') }}" method="POST">
+                    <button type="submit" class="btn btn-primary">Sinkronisasi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search functionality
+        const searchInput = document.getElementById('searchAsset');
+        const table = document.getElementById('assetTable');
+        const rows = table.querySelectorAll('tbody tr');
+        
+        searchInput.addEventListener('keyup', function() {
+            const searchText = searchInput.value.toLowerCase();
+            
+            rows.forEach(row => {
+                const assetCode = row.cells[0].textContent.toLowerCase();
+                const assetName = row.cells[1].textContent.toLowerCase();
+                
+                if (assetCode.includes(searchText) || assetName.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Delete modal functionality
+        const deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const assetId = button.getAttribute('data-asset-id');
+            const deleteForm = document.getElementById('deleteForm');
+            deleteForm.action = `/assets/delete/${assetId}`;
+        });
+    });
+</script>
+{% endblock %}

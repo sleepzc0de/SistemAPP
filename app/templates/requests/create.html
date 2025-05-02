@@ -1,0 +1,126 @@
+<!-- app/templates/requests/create.html -->
+{% extends "base.html" %}
+
+{% block title %}Buat Permintaan Aset{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-file-alt me-2"></i>Buat Permintaan Aset</h2>
+        <p class="text-muted">
+            Buat permintaan untuk pengadaan aset baru dan dapatkan prediksi persetujuan RKBMN
+        </p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('request_bp.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Kembali
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Form Permintaan Aset</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('request_bp.create') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.asset_code.label(class="form-label") }}
+                        {% if form.asset_code.errors %}
+                            {{ form.asset_code(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.asset_code.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.asset_code(class="form-control") }}
+                        {% endif %}
+                        <div class="form-text">Pilih kode aset yang akan diusulkan.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.request_quantity.label(class="form-label") }}
+                        {% if form.request_quantity.errors %}
+                            {{ form.request_quantity(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.request_quantity.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.request_quantity(class="form-control") }}
+                        {% endif %}
+                        <div class="form-text">Masukkan jumlah aset yang dibutuhkan.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.notes.label(class="form-label") }}
+                        {% if form.notes.errors %}
+                            {{ form.notes(class="form-control is-invalid", rows=4) }}
+                            <div class="invalid-feedback">
+                                {% for error in form.notes.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.notes(class="form-control", rows=4) }}
+                        {% endif %}
+                        <div class="form-text">Tambahkan catatan atau justifikasi atas permintaan ini (opsional).</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Informasi Satker</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Nama Satker</th>
+                        <td>{{ current_user.satker.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Kode Satker</th>
+                        <td>{{ current_user.satker.satker_id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Jumlah Pegawai</th>
+                        <td>{{ current_user.satker.employee_count }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Panduan Pengajuan</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-1"></i> Setelah mengajukan permintaan, sistem akan otomatis memproses prediksi persetujuan berdasarkan SBSK dan kondisi aset existng.
+                </div>
+                <p><strong>Tips untuk Meningkatkan Peluang Persetujuan:</strong></p>
+                <ul>
+                    <li>Pastikan jumlah permintaan sesuai dengan ketentuan SBSK</li>
+                    <li>Prioritaskan penggantian aset yang rusak berat atau sudah tua</li>
+                    <li>Berikan justifikasi yang jelas pada bagian catatan</li>
+                    <li>Periksa aset yang masih bisa dioptimalkan penggunaannya</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,298 @@
+<!-- app/templates/predictions/result.html -->
+{% extends "base.html" %}
+
+{% block title %}Hasil Prediksi{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-chart-pie me-2"></i>Hasil Prediksi</h2>
+        <p class="text-muted">
+            Hasil prediksi persetujuan RKBMN berdasarkan analisis SBSK dan kondisi aset
+        </p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('prediction_bp.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Kembali
+        </a>
+        <form action="{{ url_for('prediction_bp.regenerate', id=prediction.id) }}" method="POST" style="display: inline-block;">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sync me-1"></i> Regenerasi
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm border-{% if prediction.prediction_result %}success{% else %}danger{% endif %}">
+            <div class="card-header bg-{% if prediction.prediction_result %}success{% else %}danger{% endif %} text-white">
+                <h5 class="mb-0">
+                    {% if prediction.prediction_result %}
+                    <i class="fas fa-check-circle me-2"></i>Kemungkinan Besar Akan DISETUJUI
+                    {% else %}
+                    <i class="fas fa-times-circle me-2"></i>Kemungkinan Besar Akan DITOLAK
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Informasi Permintaan:</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>Satuan Kerja</th>
+                                <td>{{ request.satker.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Kode Aset</th>
+                                <td>{{ request.asset_code }}</td>
+                            </tr>
+                            <tr>
+                                <th>Nama Aset</th>
+                                <td>{{ request.get_asset_name() }}</td>
+                            </tr>
+                            <tr>
+                                <th>Jumlah Diminta</th>
+                                <td>{{ request.request_quantity }} unit</td>
+                            </tr>
+                            <tr>
+                                <th>Tanggal Permintaan</th>
+                                <td>{{ request.request_date.strftime('%d-%m-%Y') }}</td>
+                            </tr>
+                            <tr>
+                                <th>Status</th>
+                                <td>
+                                    {% if request.status == 'Pending' %}
+                                    <span class="badge bg-warning">{{ request.status }}</span>
+                                    {% elif request.status == 'Approved' %}
+                                    <span class="badge bg-success">{{ request.status }}</span>
+                                    {% elif request.status == 'Rejected' %}
+                                    <span class="badge bg-danger">{{ request.status }}</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ request.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Hasil Prediksi:</h5>
+                        <div class="text-center mb-4">
+                            <div class="display-4 fw-bold mb-1">
+                                {{ (prediction.confidence_level * 100)|round|int }}%
+                            </div>
+                            <p class="lead">Tingkat Keyakinan</p>
+                            
+                            <!-- Confidence gauge -->
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-{% if prediction.prediction_result %}success{% else %}danger{% endif %}" 
+                                     style="width: {{ (prediction.confidence_level * 100)|round|int }}%">
+                                    {{ (prediction.confidence_level * 100)|round|int }}%
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-{% if prediction.prediction_result %}success{% else %}warning{% endif %}">
+                            <i class="fas fa-{% if prediction.prediction_result %}check{% else %}exclamation{% endif %}-circle me-1"></i>
+                            <strong>Hasil Analisis:</strong> {{ prediction.get_recommendation() }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Detail Analisis</h5>
+            </div>
+            <div class="card-body">
+                {% if details and details.factors %}
+                    <div class="row">
+                        <!-- SBSK Compliance Factor -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Kesesuaian dengan SBSK</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center mb-3">
+                                        <div class="display-6">
+                                            {{ (details.factors.sbsk_compliance.score * 100)|round|int }}%
+                                        </div>
+                                        <div class="progress mt-2">
+                                            <div class="progress-bar 
+                                                {% if details.factors.sbsk_compliance.score >= 0.7 %}
+                                                    bg-success
+                                                {% elif details.factors.sbsk_compliance.score >= 0.3 %}
+                                                    bg-warning
+                                                {% else %}
+                                                    bg-danger
+                                                {% endif %}"
+                                                style="width: {{ (details.factors.sbsk_compliance.score * 100)|round|int }}%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <p><strong>Bobot:</strong> {{ (details.factors.sbsk_compliance.weight * 100)|round|int }}%</p>
+                                    
+                                    {% if details.factors.sbsk_compliance.details.reason %}
+                                        <div class="alert alert-info mt-2">
+                                            <small>{{ details.factors.sbsk_compliance.details.reason }}</small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Asset Condition Factor -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Kondisi Aset Eksisting</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center mb-3">
+                                        <div class="display-6">
+                                            {{ (details.factors.asset_condition.score * 100)|round|int }}%
+                                        </div>
+                                        <div class="progress mt-2">
+                                            <div class="progress-bar 
+                                                {% if details.factors.asset_condition.score >= 0.7 %}
+                                                    bg-success
+                                                {% elif details.factors.asset_condition.score >= 0.3 %}
+                                                    bg-warning
+                                                {% else %}
+                                                    bg-danger
+                                                {% endif %}"
+                                                style="width: {{ (details.factors.asset_condition.score * 100)|round|int }}%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <p><strong>Bobot:</strong> {{ (details.factors.asset_condition.weight * 100)|round|int }}%</p>
+                                    
+                                    {% if details.factors.asset_condition.details.total_assets is defined %}
+                                        <div class="alert alert-info mt-2">
+                                            <small>Total aset eksisting: {{ details.factors.asset_condition.details.total_assets }} unit</small><br>
+                                            <small>Kondisi baik: {{ details.factors.asset_condition.details.good_condition }} unit ({{ details.factors.asset_condition.details.good_percentage|round|int }}%)</small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Asset Optimization Factor -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Optimalisasi Aset</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center mb-3">
+                                        <div class="display-6">
+                                            {{ (details.factors.asset_optimization.score * 100)|round|int }}%
+                                        </div>
+                                        <div class="progress mt-2">
+                                            <div class="progress-bar 
+                                                {% if details.factors.asset_optimization.score >= 0.7 %}
+                                                    bg-success
+                                                {% elif details.factors.asset_optimization.score >= 0.3 %}
+                                                    bg-warning
+                                                {% else %}
+                                                    bg-danger
+                                                {% endif %}"
+                                                style="width: {{ (details.factors.asset_optimization.score * 100)|round|int }}%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <p><strong>Bobot:</strong> {{ (details.factors.asset_optimization.weight * 100)|round|int }}%</p>
+                                    
+                                    <div class="alert alert-info mt-2">
+                                        {% if details.factors.asset_optimization.details.idle_assets %}
+                                            <small>Aset idle/tidak optimal: {{ details.factors.asset_optimization.details.idle_assets }} unit</small><br>
+                                        {% endif %}
+                                        {% if details.factors.asset_optimization.details.old_assets %}
+                                            <small>Aset berusia > 5 tahun: {{ details.factors.asset_optimization.details.old_assets }} unit ({{ details.factors.asset_optimization.details.old_percentage|round|int }}%)</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Overall Score -->
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Skor Keseluruhan</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="progress" style="height: 30px;">
+                                        <div class="progress-bar {% if details.weighted_score >= 0.5 %}bg-success{% else %}bg-danger{% endif %}" 
+                                             style="width: {{ (details.weighted_score * 100)|round|int }}%">
+                                            {{ (details.weighted_score * 100)|round|int }}%
+                                        </div>
+                                    </div>
+                                    <div class="text-muted text-center mt-2">
+                                        <small>Skor minimal untuk disetujui: 50%</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Detail analisis tidak tersedia.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Rekomendasi</h5>
+            </div>
+            <div class="card-body">
+                {% if prediction.recommendation %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-1"></i> <strong>Rekomendasi:</strong>
+                    </div>
+                    <p>{{ prediction.recommendation|nl2br }}</p>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Rekomendasi tidak tersedia.
+                    </div>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <h6>Langkah Selanjutnya:</h6>
+                    {% if prediction.prediction_result %}
+                        <ul>
+                            <li>Lanjutkan ke proses pengajuan RKBMN formal</li>
+                            <li>Lampirkan justifikasi dari hasil prediksi ini</li>
+                            <li>Pastikan dokumen pendukung sudah lengkap</li>
+                        </ul>
+                    {% else %}
+                        <ul>
+                            <li>Tinjau kembali permintaan berdasarkan rekomendasi</li>
+                            <li>Sesuaikan jumlah atau pertimbangkan alternatif</li>
+                            <li>Regenerasi prediksi setelah membuat penyesuaian</li>
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

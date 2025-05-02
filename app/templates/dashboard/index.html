@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Assets Planning Prediction (APP){% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="h3"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+        <p class="text-muted">Selamat datang di sistem Assets Planning Prediction (APP). Silakan gunakan panel kontrol di bawah ini untuk mengakses fitur-fitur sistem.</p>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-4 mb-4">
+    <!-- Asset Stats -->
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 bg-primary bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-boxes text-primary fa-2x"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title mb-0">Total Aset</h5>
+                        <h3 class="mb-0">{{ dashboard.asset.count }}</h3>
+                    </div>
+                </div>
+                <div class="progress mb-2" style="height: 8px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ dashboard.asset.good_percent }}%;" aria-valuenow="{{ dashboard.asset.good_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ dashboard.asset.minor_percent }}%;" aria-valuenow="{{ dashboard.asset.minor_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-bar bg-danger" role="progressbar" style="width: {{ dashboard.asset.major_percent }}%;" aria-valuenow="{{ dashboard.asset.major_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="d-flex justify-content-between small">
+                    <span><i class="fas fa-circle text-success me-1"></i> Baik ({{ dashboard.asset.good }})</span>
+                    <span><i class="fas fa-circle text-warning me-1"></i> Rusak Ringan ({{ dashboard.asset.minor }})</span>
+                    <span><i class="fas fa-circle text-danger me-1"></i> Rusak Berat ({{ dashboard.asset.major }})</span>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('asset.index') }}" class="btn btn-sm btn-outline-primary d-block">Lihat Semua Aset</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Request Stats -->
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 bg-success bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-file-alt text-success fa-2x"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title mb-0">Pengajuan</h5>
+                        <h3 class="mb-0">{{ dashboard.request.total }}</h3>
+                    </div>
+                </div>
+                <div class="row text-center">
+                    <div class="col-3">
+                        <div class="bg-secondary bg-opacity-10 rounded py-2 px-1">
+                            <h5 class="mb-0">{{ dashboard.request.draft }}</h5>
+                            <small class="text-muted">Draft</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="bg-primary bg-opacity-10 rounded py-2 px-1">
+                            <h5 class="mb-0">{{ dashboard.request.submitted }}</h5>
+                            <small class="text-muted">Submit</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="bg-success bg-opacity-10 rounded py-2 px-1">
+                            <h5 class="mb-0">{{ dashboard.request.approved }}</h5>
+                            <small class="text-muted">Setuju</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="bg-danger bg-opacity-10 rounded py-2 px-1">
+                            <h5 class="mb-0">{{ dashboard.request.rejected }}</h5>
+                            <small class="text-muted">Tolak</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('request.index') }}" class="btn btn-sm btn-outline-success d-block">Lihat Semua Pengajuan</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Prediction Stats -->
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 bg-info bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-chart-pie text-info fa-2x"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title mb-0">Prediksi</h5>
+                        <h3 class="mb-0">{{ dashboard.prediction.total }}</h3>
+                    </div>
+                </div>
+                <div class="progress mb-2" style="height: 30px;">
+                    <div class="progress-bar bg-success position-relative" role="progressbar" style="width: {{ dashboard.prediction.approved_percent }}%;" aria-valuenow="{{ dashboard.prediction.approved_percent }}" aria-valuemin="0" aria-valuemax="100">
+                        <span class="position-absolute top-50 start-50 translate-middle text-white">{{ dashboard.prediction.approved }} Disetujui</span>
+                    </div>
+                    <div class="progress-bar bg-danger position-relative" role="progressbar" style="width: {{ dashboard.prediction.rejected_percent }}%;" aria-valuenow="{{ dashboard.prediction.rejected_percent }}" aria-valuemin="0" aria-valuemax="100">
+                        <span class="position-absolute top-50 start-50 translate-middle text-white">{{ dashboard.prediction.rejected }} Ditolak</span>
+                    </div>
+                </div>
+                <div class="mt-2 text-center">
+                    <span class="badge bg-success">{{ "%.1f"|format(dashboard.prediction.approved_percent) }}% Disetujui</span>
+                    <span class="badge bg-danger">{{ "%.1f"|format(dashboard.prediction.rejected_percent) }}% Ditolak</span>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('prediction.index') }}" class="btn btn-sm btn-outline-info d-block">Lihat Semua Prediksi</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Satker Stats -->
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 bg-warning bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-building text-warning fa-2x"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title mb-0">Satker</h5>
+                        <h3 class="mb-0">{{ dashboard.satker.count }}</h3>
+                    </div>
+                </div>
+                <div class="text-center mt-2">
+                    <div class="bg-light rounded p-3">
+                        <h4 class="mb-0">{{ dashboard.satker.total_employees }}</h4>
+                        <p class="mb-0 text-muted">Total Pegawai</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <button class="btn btn-sm btn-outline-warning d-block w-100" disabled>Detail Satker</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row g-4">
+    <!-- Recent Requests -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Pengajuan Terbaru</h5>
+                    <a href="{{ url_for('request.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Aset</th>
+                                <th>Jumlah</th>
+                                <th>Status</th>
+                                <th>Tanggal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in dashboard.recent_requests %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('request.view', request_id=request.id) }}" class="text-decoration-none">
+                                        {{ request.request_id[:8] }}...
+                                    </a>
+                                </td>
+                                <td>{{ request.asset_name }}</td>
+                                <td>{{ request.request_quantity }}</td>
+                                <td>
+                                    {% if request.status == 'Draft' %}
+                                    <span class="badge bg-secondary">Draft</span>
+                                    {% elif request.status == 'Submitted' %}
+                                    <span class="badge bg-primary">Submitted</span>
+                                    {% elif request.status == 'Approved' %}
+                                    <span class="badge bg-success">Disetujui</span>
+                                    {% elif request.status == 'Rejected' %}
+                                    <span class="badge bg-danger">Ditolak</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ request.created_at.strftime('%d/%m/%Y') }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-3">Belum ada pengajuan.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Predictions -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Prediksi Terbaru</h5>
+                    <a href="{{ url_for('prediction.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID Pengajuan</th>
+                                <th>Hasil</th>
+                                <th>Keyakinan</th>
+                                <th>Tanggal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prediction in dashboard.recent_predictions %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('prediction.result', prediction_id=prediction.id) }}" class="text-decoration-none">
+                                        {{ prediction.asset_request.request_id[:8] }}...
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if prediction.prediction_result %}
+                                    <span class="badge bg-success">Disetujui</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Ditolak</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar {% if prediction.prediction_result %}bg-success{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ prediction.confidence_level * 100 }}%;" aria-valuenow="{{ prediction.confidence_level * 100 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <small>{{ "%.1f"|format(prediction.confidence_level * 100) }}%</small>
+                                </td>
+                                <td>{{ prediction.created_at.strftime('%d/%m/%Y') }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-3">Belum ada prediksi.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Aksi Cepat</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('request.create') }}" class="btn btn-primary d-block h-100 d-flex align-items-center justify-content-center p-4">
+                            <div class="text-center">
+                                <i class="fas fa-file-plus fa-2x mb-2"></i>
+                                <div>Buat Pengajuan Baru</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('asset.index') }}" class="btn btn-success d-block h-100 d-flex align-items-center justify-content-center p-4">
+                            <div class="text-center">
+                                <i class="fas fa-search fa-2x mb-2"></i>
+                                <div>Cari Aset</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('main.statistics') }}" class="btn btn-info text-white d-block h-100 d-flex align-items-center justify-content-center p-4">
+                            <div class="text-center">
+                                <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                                <div>Lihat Statistik</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('request.index') }}" class="btn btn-warning text-dark d-block h-100 d-flex align-items-center justify-content-center p-4">
+                            <div class="text-center">
+                                <i class="fas fa-clipboard-list fa-2x mb-2"></i>
+                                <div>Daftar Pengajuan</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize any dashboard scripts here
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Dashboard initialized');
+        
+        // Add any dashboard-specific JavaScript here
+    });
+</script>
+{% endblock %}

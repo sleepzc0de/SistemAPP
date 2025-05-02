@@ -1,0 +1,158 @@
+<!-- app/templates/assets/view.html -->
+{% extends "base.html" %}
+
+{% block title %}Detail Aset{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-box me-2"></i>Detail Aset</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('asset_bp.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Kembali
+        </a>
+        <a href="{{ url_for('asset_bp.edit', id=asset.id) }}" class="btn btn-warning">
+            <i class="fas fa-edit me-1"></i> Edit
+        </a>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            <i class="fas fa-trash me-1"></i> Hapus
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Informasi Aset</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th class="w-25">Kode Aset</th>
+                                <td>{{ asset.asset_code }}</td>
+                            </tr>
+                            <tr>
+                                <th>Nama Aset</th>
+                                <td>{{ asset.asset_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Kondisi</th>
+                                <td>
+                                    {% if asset.asset_condition == 'Baik' %}
+                                    <span class="badge bg-success">{{ asset.asset_condition }}</span>
+                                    {% elif asset.asset_condition == 'Rusak Ringan' %}
+                                    <span class="badge bg-warning">{{ asset.asset_condition }}</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">{{ asset.asset_condition }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Tanggal Perolehan</th>
+                                <td>{{ asset.acquisition_date.strftime('%d-%m-%Y') }}</td>
+                            </tr>
+                            <tr>
+                                <th>Usia Aset</th>
+                                <td>{{ asset.get_age_years() }} tahun</td>
+                            </tr>
+                            <tr>
+                                <th>Kelas Aset</th>
+                                <td>{{ asset.get_asset_class() }}</td>
+                            </tr>
+                            <tr>
+                                <th>Satuan Kerja</th>
+                                <td>{{ asset.satker.name }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-primary mb-3">
+                            <div class="card-header bg-primary text-white">Status Usia</div>
+                            <div class="card-body">
+                                {% set age_years = asset.get_age_years() %}
+                                {% if age_years < 3 %}
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle me-1"></i> Aset masih relatif baru ({{ age_years }} tahun)
+                                </div>
+                                {% elif age_years < 5 %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Aset mendekati usia maksimal ideal ({{ age_years }} tahun)
+                                </div>
+                                {% else %}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-circle me-1"></i> Aset telah melewati usia ideal ({{ age_years }} tahun)
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Age progress bar -->
+                                <h6>Usia relatif terhadap umur ekonomis</h6>
+                                {% set max_age = 8 %}
+                                {% set age_percent = (age_years / max_age * 100)|round %}
+                                <div class="progress">
+                                    {% if age_percent < 50 %}
+                                    <div class="progress-bar bg-success" style="width: {{ age_percent }}%">{{ age_percent }}%</div>
+                                    {% elif age_percent < 75 %}
+                                    <div class="progress-bar bg-warning" style="width: {{ age_percent }}%">{{ age_percent }}%</div>
+                                    {% else %}
+                                    <div class="progress-bar bg-danger" style="width: {{ age_percent }}%">{{ age_percent }}%</div>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">Umur ekonomis maksimal: {{ max_age }} tahun</small>
+                            </div>
+                        </div>
+                        
+                        <div class="card border-primary">
+                            <div class="card-header bg-primary text-white">Rekomendasi</div>
+                            <div class="card-body">
+                                {% if asset.asset_condition == 'Baik' and asset.get_age_years() < 5 %}
+                                <div class="alert alert-success">
+                                    <i class="fas fa-thumbs-up me-1"></i> Aset masih dalam kondisi baik dan dapat digunakan
+                                </div>
+                                <p>Aset ini masih dalam kondisi baik dan belum melewati usia ekonomis. Disarankan untuk tetap melakukan pemeliharaan rutin.</p>
+                                {% elif asset.asset_condition == 'Rusak Ringan' or (asset.asset_condition == 'Baik' and asset.get_age_years() >= 5) %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-tools me-1"></i> Aset memerlukan pemeliharaan atau pertimbangan penggantian
+                                </div>
+                                <p>Aset ini sudah mulai menunjukkan tanda-tanda penurunan kondisi. Disarankan untuk melakukan pemeliharaan lebih intensif atau mulai merencanakan penggantian dalam 1-2 tahun ke depan.</p>
+                                {% else %}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Aset perlu diganti
+                                </div>
+                                <p>Aset ini sudah dalam kondisi rusak berat dan/atau telah melewati usia ekonomis. Disarankan untuk mengajukan penggantian melalui RKBMN pengadaan.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Hapus</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Anda yakin ingin menghapus aset ini?</p>
+                <p>Kode: <strong>{{ asset.asset_code }}</strong> - {{ asset.asset_name }}</p>
+                <p class="mb-0 text-danger"><strong>Perhatian:</strong> Tindakan ini tidak dapat dibatalkan!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <form action="{{ url_for('asset_bp.delete', id=asset.id) }}" method="POST">
+                    <button type="submit" class="btn btn-danger">Hapus</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
